@@ -317,88 +317,59 @@ Tài liệu này mô tả UML cho toàn bộ codebase theo 3 module: `auction-sh
   - `+ getCreatedAt(): LocalDateTime`
   - `+ setCreatedAt(res: LocalDateTime): void`
 
-## 1.2 Mermaid classDiagram (`auction-shared`)
+## 1.2 Mermaid classDiagram (`auction-shared`) - Bản tách cụm dễ đọc
+
+### 1.2.1 User hierarchy
 
 ```mermaid
+%%{init: {'classDiagram': {'nodeSpacing': 80, 'rankSpacing': 90}} }%%
 classDiagram
-direction TB
-class Entity {
-  <<abstract>>
-  #int id
-  #int version
-  +int getId()
-  +void setId(int id)
-  +int getVersion()
-  +void setVersion(int v)
-}
-class User {
-  <<abstract>>
-  #String username
-  #String fullName
-  #String password
-  #String email
-  #String age
-  #String phoneNumber
-  #double balance
-  #boolean active
-  #boolean locked
-  #String avatarUrl
-  #double moneySpent
-  #int itemsBought
-  #double moneyReceived
-  #int itemsSold
-  #double avgRating
-  #int totalRatings
-  +UserRole getRole()
-}
-class Admin { +UserRole getRole() }
-class Seller { +UserRole getRole() }
-class Bidder { +UserRole getRole() }
-class Item {
-  <<abstract>>
-  #String name
-  #double currentPrice
-  #double maxPrice
-  #int sellerId
-  #int winnerId
-  #ItemStatus status
-  +double calculateTax()
-}
-class Art { +double calculateTax() }
-class Electronics { +double calculateTax() }
-class Vehicle { +double calculateTax() }
-class ItemFactory { +Item createItem(String res) }
-class BidTransaction {
-  #int itemId
-  #int userId
-  #double bidValue
-  #double maxAutoBid
-  #boolean autoBid
-  #double autoBidIncrement
-}
-class Lot
-class Rating
-class Request
-class Response
-class TransactionLog
+direction LR
+class Entity
+class User
+class Admin
+class Seller
+class Bidder
 class UserRole { <<enumeration>> }
-class ItemStatus { <<enumeration>> }
 
 Entity <|-- User
-Entity <|-- Item
-Entity <|-- BidTransaction
 User <|-- Admin
 User <|-- Seller
 User <|-- Bidder
+User ..> UserRole
+```
+
+### 1.2.2 Item hierarchy + protocol core
+
+```mermaid
+%%{init: {'classDiagram': {'nodeSpacing': 80, 'rankSpacing': 90}} }%%
+classDiagram
+direction LR
+class Entity
+class Item
+class Art
+class Electronics
+class Vehicle
+class ItemStatus { <<enumeration>> }
+class ItemFactory
+class BidTransaction
+class Request
+class Response
+class Lot
+class Rating
+class TransactionLog
+
+Entity <|-- Item
+Entity <|-- BidTransaction
 Item <|-- Art
 Item <|-- Electronics
 Item <|-- Vehicle
-ItemFactory ..> Item
-ItemFactory ..> Art
-ItemFactory ..> Electronics
-ItemFactory ..> Vehicle
-User ..> UserRole
 Item ..> ItemStatus
+ItemFactory ..> Item
+Request ..> BidTransaction
+Response ..> Item
+Response ..> Rating
+Response ..> Lot
 ```
 
 ---
@@ -595,53 +566,59 @@ Item ..> ItemStatus
   - `+ insertLog(int u, String t, double a, int i): boolean`
   - `+ getByUserId(int u): List<TransactionLog>`
 
-## 2.2 Mermaid classDiagram (`auction-server`)
+## 2.2 Mermaid UML (`auction-server`) - Bản tách cụm dễ đọc
+
+### 2.2.1 Pipeline kiến trúc server
 
 ```mermaid
+%%{init: {'flowchart': {'curve': 'linear', 'nodeSpacing': 80, 'rankSpacing': 90}} }%%
+flowchart TB
+  Main --> SocketServer
+  Main --> AuctionCloser
+  SocketServer --> ClientHandler
+  SocketServer --> SettlementService
+
+  ClientHandler --> UserService
+  ClientHandler --> AuctionManager
+  ClientHandler --> "ItemDao / LotDao / RatingDao / TransactionLogDao"
+
+  AuctionManager --> BidService
+  UserService --> UserDao
+  BidService --> "BidDao + ItemDao"
+```
+
+### 2.2.2 Class diagram service/controller core
+
+```mermaid
+%%{init: {'classDiagram': {'nodeSpacing': 75, 'rankSpacing': 85}} }%%
 classDiagram
-class Main { +main(String[] args) void }
-class SocketServer {
-  -int port
-  -ExecutorService pool
-  +SocketServer(int p)
-  +startServer() void
-}
-class ClientHandler {
-  -Socket socket
-  -ObjectOutputStream out
-  -ObjectInputStream in
-  -UserService userService
-  -ItemDao itemDao
-  -LotDao lotDao
-  -TransactionLogDao logDao
-  -RatingDao ratingDao
-  -User currentUser
-  +ClientHandler(Socket s)
-  +getCurrentUser() User
-  +run() void
-  -process(Request req) Response
-  -handleSubmitRating(Request req) Response
-  -handleAddLot(Request req) Response
-  -handleDeposit(Request req) Response
-  +send(Response r) void
-}
-class AuctionManager {
-  -AuctionManager instance
-  -List clients
-  -BidService bidservice
-  -ItemDao itemDao
-  -UserDao userDao
-  -TransactionLogDao logDao
-  -Map autobids
-  +getInstance() AuctionManager
-  +processBid(BidTransaction b) Response
-  +broadcast(Response r) void
-}
-class BidService { +placeBid(BidTransaction b) Response }
-class AuctionCloser { +start() void }
-class SettlementService { +start() void }
+direction LR
+class Main
+class SocketServer
+class ClientHandler
+class AuctionManager
+class BidService
 class UserService
-class DatabaseConnection { +getInstance() DatabaseConnection +getConnection() Connection }
+class AuctionCloser
+class SettlementService
+
+ClientHandler ..|> Runnable
+Main ..> SocketServer
+Main ..> AuctionCloser
+SocketServer ..> ClientHandler
+SocketServer ..> SettlementService
+ClientHandler ..> UserService
+ClientHandler ..> AuctionManager
+AuctionManager ..> BidService
+```
+
+### 2.2.3 Class diagram DAO layer
+
+```mermaid
+%%{init: {'classDiagram': {'nodeSpacing': 80, 'rankSpacing': 90}} }%%
+classDiagram
+direction LR
+class DatabaseConnection
 class UserDao
 class ItemDao
 class BidDao
@@ -649,27 +626,6 @@ class LotDao
 class RatingDao
 class TransactionLogDao
 
-ClientHandler ..|> Runnable
-Main ..> SocketServer
-Main ..> AuctionCloser
-SocketServer ..> SettlementService
-SocketServer ..> ClientHandler
-ClientHandler ..> AuctionManager
-ClientHandler ..> UserService
-ClientHandler ..> ItemDao
-ClientHandler ..> LotDao
-ClientHandler ..> RatingDao
-ClientHandler ..> TransactionLogDao
-AuctionManager ..> BidService
-AuctionManager ..> ItemDao
-AuctionManager ..> UserDao
-AuctionManager ..> TransactionLogDao
-AuctionCloser ..> ItemDao
-AuctionCloser ..> BidDao
-SettlementService ..> ItemDao
-SettlementService ..> UserDao
-SettlementService ..> TransactionLogDao
-UserService ..> UserDao
 UserDao ..> DatabaseConnection
 ItemDao ..> DatabaseConnection
 BidDao ..> DatabaseConnection
@@ -1005,10 +961,14 @@ TransactionLogDao ..> DatabaseConnection
   - `+ addNotification(res: String): void {static}`
   - `+ getNotifications(): ObservableList<String> {static}`
 
-## 3.2 Mermaid classDiagram (`auction-client`, high-level)
+## 3.2 Mermaid UML (`auction-client`) - Bản tách cụm dễ đọc
+
+### 3.2.1 Core + network
 
 ```mermaid
+%%{init: {'classDiagram': {'nodeSpacing': 80, 'rankSpacing': 90}} }%%
 classDiagram
+direction LR
 class Main
 class App
 class SceneManager
@@ -1016,52 +976,88 @@ class ClientSession
 class NetworkClient
 class NodeManager
 class NodeContentLoader
-class LoginController
-class RegisterController
-class WelcomeController
-class AuthController
-class KhungController
-class AdminDashboardController
-class TrangChuController
-class ThanhTimKiemController
-class ItemCardController
-class ItemInformationController
-class BiddingFormController
-class RatingFormController
-class ProfileController
-class UserProfileController
-class YourItemController
-class HistoryController
-class AddNewLotController
-class TransactionHistoryController
-class NotificationPopup
 class NotificationCenter
 
 Main <|-- Application
 App ..> Main
 Main ..> SceneManager
-LoginController ..> NetworkClient
-RegisterController ..> NetworkClient
-AuthController ..> NetworkClient
+ClientSession ..> NetworkClient
+NetworkClient ..> NotificationCenter
+NodeManager ..> NodeContentLoader
+```
+
+### 3.2.2 UI controllers chính
+
+```mermaid
+%%{init: {'classDiagram': {'nodeSpacing': 75, 'rankSpacing': 85}} }%%
+classDiagram
+direction LR
+class KhungController
+class TrangChuController
+class HistoryController
+class YourItemController
+class ProfileController
+class AdminDashboardController
+class ItemInformationController
+class AddNewLotController
+class ThanhTimKiemController
+class UserProfileController
+class TransactionHistoryController
+class BiddingFormController
+class RatingFormController
+class ItemCardController
+
 KhungController ..> TrangChuController
 KhungController ..> HistoryController
 KhungController ..> YourItemController
+KhungController ..> ProfileController
+KhungController ..> AdminDashboardController
 KhungController ..> ItemInformationController
-KhungController ..> ClientSession
-TrangChuController ..> NetworkClient
-ItemInformationController ..> NetworkClient
-BiddingFormController ..> NetworkClient
-RatingFormController ..> NetworkClient
-ProfileController ..> NetworkClient
-AdminDashboardController ..> NetworkClient
-HistoryController ..> NetworkClient
-YourItemController ..> NetworkClient
-AddNewLotController ..> NetworkClient
-TransactionHistoryController ..> NetworkClient
-ThanhTimKiemController ..> NotificationPopup
-NetworkClient ..> NotificationCenter
-NetworkClient ..> KhungController
-NetworkClient ..> ProfileController
+KhungController ..> AddNewLotController
+KhungController ..> ThanhTimKiemController
+ItemInformationController ..> BiddingFormController
+ItemInformationController ..> RatingFormController
+TrangChuController ..> ItemCardController
+ThanhTimKiemController ..> UserProfileController
+ProfileController ..> TransactionHistoryController
+```
+
+### 3.2.3 Luồng controller gọi network
+
+```mermaid
+%%{init: {'flowchart': {'curve': 'linear', 'nodeSpacing': 75, 'rankSpacing': 85}} }%%
+flowchart TB
+  subgraph AUTH["Auth"]
+    LoginController
+    RegisterController
+    AuthController
+  end
+  subgraph UI["Main UI"]
+    KhungController
+    TrangChuController
+    ItemInformationController
+    BiddingFormController
+    RatingFormController
+    ProfileController
+    AdminDashboardController
+    HistoryController
+    YourItemController
+    AddNewLotController
+    TransactionHistoryController
+  end
+  LoginController --> NetworkClient
+  RegisterController --> NetworkClient
+  AuthController --> NetworkClient
+  TrangChuController --> NetworkClient
+  ItemInformationController --> NetworkClient
+  BiddingFormController --> NetworkClient
+  RatingFormController --> NetworkClient
+  ProfileController --> NetworkClient
+  AdminDashboardController --> NetworkClient
+  HistoryController --> NetworkClient
+  YourItemController --> NetworkClient
+  AddNewLotController --> NetworkClient
+  TransactionHistoryController --> NetworkClient
 ```
 
 ---
