@@ -1420,5 +1420,6 @@ class NotificationPopup {
   +NotificationPopup()
   +show(res: Window, x: double, y: double): void
 }
-```
 
+```
+#Không muốn mù mắt thì đọc bản tóm tắt đi
