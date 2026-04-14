@@ -1,5 +1,9 @@
-# Project UML Đầy Đủ 
+# UML Atlas - Full Field + Method
 
+Tài liệu này ưu tiên:
+1) Không lỗi parse Mermaid.
+2) Dễ đọc hơn (tách nhỏ sơ đồ).
+3) Vẫn giữ đủ field + method cho từng class.
 
 ## Quy ước
 - `+`: `public`
