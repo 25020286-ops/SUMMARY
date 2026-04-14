@@ -1422,4 +1422,4 @@ class NotificationPopup {
 }
 
 ```
-#Không muốn mù mắt thì đọc bản tóm tắt đi
+# ĐỌC BẢN TÓM TẮT ĐI NẾU KHÔNG MUỐN ĐAU MẮT ☠️
