@@ -93,18 +93,7 @@
 | Bảng chính | `users`, `items`, `bid_transactions`, `transaction_logs`, `ratings` |
 | Runtime migrations | DAO tự `ALTER TABLE`/`CREATE INDEX` nếu thiếu cột/index |
 
-## 8) Mismatch quan trọng
-
-| Nhóm | Vấn đề |
-|---|---|
-| Signup UX | Server trả `"duplicate"` nhưng `RegisterController` check `"duplicate_username_or_email"` |
-| Lock user | `LOCK_USER` set `islocked`, login query chỉ check `isactive=true` |
-| Quyền truy cập | Nhiều action nhạy cảm chưa buộc role/session chặt |
-| Payload trust | Nhiều nhánh dùng `userid/username` từ payload thay vì `currentUser` |
-| Đồng bộ auction | 2 scheduler đóng auction có thể gây inconsistency |
-| Event mismatch | Server broadcast `ITEM_CLOSED` nhưng client chưa handle riêng |
-
-## 9) Sơ đồ luồng tổng quan
+## 8) Sơ đồ luồng tổng quan
 
 ```mermaid
 flowchart LR
