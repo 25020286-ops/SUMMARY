@@ -271,24 +271,9 @@ Tài liệu này mô tả toàn bộ hệ thống theo trạng thái code hiện
 
 ---
 
-## 14) Inconsistency và bug/rủi ro quan trọng
 
-| Mức độ | Vấn đề | Ảnh hưởng |
-|---|---|---|
-| Critical | `SettlementService` ghi status `"EXPIRED"` nhưng enum `ItemStatus` không có | `ItemDao.mapResultSet` có thể fail parse status, dữ liệu item lỗi |
-| Critical | Luồng trừ/hoàn tiền diễn ra trước `placeBid`, thiếu rollback business nếu placeBid fail | lệch số dư/log trong tình huống lỗi |
-| Critical | Nhiều action thiếu auth/ownership check | có thể thao tác thay người khác |
-| Critical | 1 JDBC connection dùng chung toàn server | race condition, giao dịch chồng lấn |
-| High | Hai scheduler cùng đóng auction (`SettlementService` và `AuctionCloser`) logic khác nhau | trạng thái cuối không nhất quán |
-| High | `islocked` không được kiểm tra khi login | user bị khóa vẫn có thể đăng nhập |
-| Medium | Mismatch message signup (`duplicate` vs `duplicate_username_or_email`) | UI báo lỗi không đúng |
-| Medium | Event `ITEM_CLOSED` chưa có handler client rõ ràng | UI không phản ứng theo đóng phiên |
-| Medium | Trộn constants và string literal cho action | dễ drift protocol client/server |
-| Medium | Nhiều `catch {}` rỗng | khó debug, mất lỗi runtime |
 
----
-
-## 15) Luồng UI chi tiết theo vai trò
+## 14) Luồng UI chi tiết theo vai trò
 
 | Vai trò | Màn chính | Hành động chính |
 |---|---|---|
@@ -301,7 +286,7 @@ Tài liệu này mô tả toàn bộ hệ thống theo trạng thái code hiện
 
 ---
 
-## 16) Sơ đồ kiến trúc tổng thể
+## 15) Sơ đồ kiến trúc tổng thể
 
 ```mermaid
 flowchart LR
@@ -317,7 +302,7 @@ flowchart LR
   NC --> UI[Khung/TrangChu/ItemInfo/Profile]
 ```
 
-## 17) Sơ đồ request lifecycle
+## 16) Sơ đồ request lifecycle
 
 ```mermaid
 sequenceDiagram
@@ -343,7 +328,7 @@ sequenceDiagram
 
 ---
 
-## 18) Checklist vận hành / debug nhanh
+## 17) Checklist vận hành / debug nhanh
 
 | Nhóm | Kiểm tra nhanh |
 |---|---|
@@ -356,7 +341,7 @@ sequenceDiagram
 
 ---
 
-## 19) Danh mục tài liệu liên quan trong repo
+## 18) Danh mục tài liệu liên quan trong repo
 
 | File | Nội dung |
 |---|---|
@@ -365,11 +350,3 @@ sequenceDiagram
 | `README.md` | mô tả dự án và hướng chạy cơ bản |
 
 ---
-
-## 20) Gợi ý dùng tài liệu này
-
-- Dùng như “source of truth” khi onboarding thành viên mới.
-- Dùng cho QA viết test case theo action.
-- Dùng cho refactor: bắt đầu từ mục `14) Inconsistency và bug/rủi ro`.
-- Dùng để chuẩn hóa API nội bộ: bắt đầu từ mục `8) Request catalog`.
-
